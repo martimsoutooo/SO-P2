@@ -143,6 +143,8 @@ static request waitForClientOrChef()
     }
 
     // TODO insert your code here
+    sh -> fSt.st.waiterStat = WAIT_FOR_REQUEST;
+    saveState(nFic, &sh->fSt);
     
     if (semUp (semgid, sh->mutex) == -1)      {                                             /* exit critical region */
         perror ("error on the down operation for semaphore access (WT)");
@@ -150,6 +152,7 @@ static request waitForClientOrChef()
     }
 
     // TODO insert your code here
+    semDown(semgid, sh->waiterRequest);
 
     if (semDown (semgid, sh->mutex) == -1)  {                                                  /* enter critical region */
         perror ("error on the up operation for semaphore access (WT)");
@@ -157,6 +160,8 @@ static request waitForClientOrChef()
     }
 
     // TODO insert your code here
+    req.reqGroup = sh->fSt.waiterRequest.reqGroup;
+    req.reqType = sh->fSt.waiterRequest.reqType;
 
     if (semUp (semgid, sh->mutex) == -1) {                                                  /* exit critical region */
         perror ("error on the down operation for semaphore access (WT)");
