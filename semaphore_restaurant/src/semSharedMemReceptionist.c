@@ -294,12 +294,41 @@ static void receivePayment (int n)
     saveState(nFic, &sh->fSt);
 
     // TODO insert your code here
+    // a mesa acacabou portanto de comer
+    int mesa_grupo = sh->fSt.assignedTable[n];
+    semUp(semgid, sh->tableDone[mesa_grupo]);
+    groupRecord[n] = DONE;
 
+    sh->fSt.assignedTable[n] = -1;
+    
     if (semUp (semgid, sh->mutex) == -1)  {                                                  /* exit critical region */
      perror ("error on the down operation for semaphore access (WT)");
         exit (EXIT_FAILURE);
     }
 
     // TODO insert your code here
+
+    if (sh->fSt.groupsWaiting > 0) {
+        // dizer ao recepcionista para atribuir mesa
+        sh->fSt.st.receptionistStat = ASSIGNTABLE;
+        saveState(nFic, &sh->fSt);
+
+        int nextGroup = decideNextGroup();
+        if (nextGroup != -1) {
+            // ver se há uma mesa disponível
+            sh->fSt.assignedTable[nextGroup] = decideTableOrWait(nextGroup);
+            if (sh->fSt.assignedTable[nextGroup] != -1) {
+                // se houver mesa disponível, atribuir a mesa que foi libertada
+                sh->fSt.assignedTable[nextGroup] = mesa_grupo;
+                groupRecord[nextGroup] = ATTABLE;
+                semUp(semgid, sh->waitForTable[nextGroup]);
+
+                sh->fSt.groupsWaiting--;
+            } else {
+                groupRecord[nextGroup] = WAIT;
+                sh->fSt.groupsWaiting++;
+            }
+        }
+    }
 }
 
