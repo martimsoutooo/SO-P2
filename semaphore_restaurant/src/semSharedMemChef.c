@@ -123,19 +123,18 @@ int main (int argc, char *argv[])
  *  Updates its state and saves internal state.
  *  Received order should be acknowledged.
  */
-static void waitForOrder() {
-    if (semDown(semgid, sh->mutex) == -1) { // Entrar na região crítica
-        perror("error on the down operation for semaphore access (PT)");
-        exit(EXIT_FAILURE);
+static void waitForOrder ()
+{
+
+    //TODO insert your code here
+     
+    if (semDown (semgid, sh->mutex) == -1) {                                                      /* enter critical region */
+        perror ("error on the up operation for semaphore access (PT)");
+        exit (EXIT_FAILURE);
     }
 
-    sh->fSt.st.chefStat = WAIT_FOR_ORDER;
-    saveState(nFic, &sh->fSt);
-
+    //TODO insert your code here
     
-    sh->fSt.st.chefStat = COOK;
-    saveState(nFic, &sh->fSt);
-    sh->fSt.foodOrder = 0; 
 
     if (semUp(semgid, sh->mutex) == -1) { // Sair da região crítica
         perror("error on the up operation for semaphore access (PT)");
