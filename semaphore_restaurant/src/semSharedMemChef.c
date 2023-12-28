@@ -126,9 +126,7 @@ int main (int argc, char *argv[])
 static void waitForOrder ()
 {
 
-    //TODO insert your code here
-    sh->fSt.st.chefStat = WAIT_FOR_ORDER;
-    saveState(nFic, &sh->fSt); 
+    
     
     if (semDown (semgid, sh->waitOrder) == -1) {                                               /* enter critical region */
         perror ("error on the down operation for semaphore access");
@@ -141,10 +139,15 @@ static void waitForOrder ()
     }
 
     //TODO insert your code here
-    sh->fSt.foodOrder = 0;
+    lastGroup = sh->fSt.foodGroup;
     sh->fSt.st.chefStat = COOK;
     saveState(nFic, &sh->fSt);
     
+
+    if (semUp(semgid, sh->orderReceived) == -1) { // Sair da região crítica
+        perror("error on the up operation for semaphore access (PT)");
+        exit(EXIT_FAILURE);
+    }
 
     if (semUp(semgid, sh->mutex) == -1) { // Sair da região crítica
         perror("error on the up operation for semaphore access (PT)");
@@ -164,7 +167,7 @@ static void waitForOrder ()
 static void processOrder() {
     usleep((unsigned int) floor((MAXCOOK * random()) / RAND_MAX + 100.0));
 
-    if (semUp (semgid, sh->waiterRequestPossible) == -1) {                                             /* exit critical region */
+    if (semDown(semgid, sh->waiterRequestPossible) == -1) {                                             /* exit critical region */
         perror ("error on the up operation for semaphore access");
         exit (EXIT_FAILURE);
     }

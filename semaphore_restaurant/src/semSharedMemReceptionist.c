@@ -149,14 +149,18 @@ int main (int argc, char *argv[])
  */
 static int decideTableOrWait(int n) {
 
-    if (sh->fSt.st.groupStat[n] == ATRECEPTION && sh->fSt.assignedTable[n] == -1) {
-        for (int tableId = 0; tableId < NUMTABLES; tableId++) {
-            if (sh->fSt.assignedTable[tableId] == -1) {
-                sh->fSt.assignedTable[tableId] = n; 
-                return tableId;
-            }
-        }
+    if(sh->fSt.st.groupStat[n] == ATRECEPTION && sh->fSt.assignedTable[n] == -1){
+        int occupied = 0;
+        for(int num = 0; num < sh->fSt.nGroups; num++)
+            if(sh->fSt.assignedTable[num] != -1)
+                occupied += 1 + sh->fSt.assignedTable[num];
+
+        if(occupied <= 1)
+            return 1;
+        if(occupied == 2)
+            return 0;
     }
+
     return -1; // Nenhuma mesa disponível ou o grupo não está na recepção
 }
 
@@ -171,7 +175,7 @@ static int decideTableOrWait(int n) {
 static int decideNextGroup() {
     
 
-    for (int groupId = 0; groupId < MAXGROUPS; groupId++) {
+    for (int groupId = 0; groupId < sh->fSt.nGroups; groupId++) {
         
         if (groupRecord[groupId] == WAIT && decideTableOrWait(groupId) != -1) {
             return groupId;
@@ -307,24 +311,17 @@ static void receivePayment (int n)
         exit (EXIT_FAILURE);
     }
 
+    int mesa_grupo = sh->fSt.assignedTable[n];
     sh->fSt.st.receptionistStat = RECVPAY;
     saveState(nFic, &sh->fSt);
 
     // TODO insert your code here
     // a mesa acabou de comer
-    int mesa_grupo = sh->fSt.assignedTable[n];
+    if (semUp(semgid, sh->tableDone[mesa_grupo]) == -1)  {                                                  /* exit critical region */
+     perror ("error on the down operation for semaphore access (WT)");
+        exit (EXIT_FAILURE);
+    }
     groupRecord[n] = DONE;
-
-    /////// NOTA TALVEZ SEMAFORO AQUI
-
-
-
-
-
-
-
-
-    
 
     sh->fSt.assignedTable[n] = -1;
 
