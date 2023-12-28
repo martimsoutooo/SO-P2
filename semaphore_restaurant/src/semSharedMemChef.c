@@ -127,6 +127,8 @@ static void waitForOrder ()
 {
 
     //TODO insert your code here
+    sh->fSt.st.chefStat = WAIT_FOR_ORDER;
+    saveState(nFic, &sh->fSt); 
      
     if (semDown (semgid, sh->mutex) == -1) {                                                      /* enter critical region */
         perror ("error on the up operation for semaphore access (PT)");
@@ -134,6 +136,9 @@ static void waitForOrder ()
     }
 
     //TODO insert your code here
+    sh->fSt.foodOrder = 0;
+    sh->fSt.st.chefStat = COOK;
+    saveState(nFic, &sh->fSt);
     
 
     if (semUp (semgid, sh->mutex) == -1) {                                                      /* exit critical region */
