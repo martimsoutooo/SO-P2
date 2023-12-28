@@ -231,14 +231,14 @@ static void informChef (int n)
 
     // TODO insert your code here
     // waiter vai começar à espera que o chef lhe diga que está feito
-    if (semUp(semgid, sh->orderReceived) == -1)                                                   /* exit critical region */
+    if (semDown(semgid, sh->orderReceived) == -1)                                                   /* exit critical region */
     { perror ("error on the down operation for semaphore access (WT)");
         exit (EXIT_FAILURE);
     }
 
     // mesa "mesa" estão agora à espera que o waiter lhes traga a comidinha
     
-    if (semDown(semgid, sh->requestReceived[mesa]) == -1)                                                   /* exit critical region */
+    if (semUp(semgid, sh->requestReceived[mesa]) == -1)                                                   /* exit critical region */
     { perror ("error on the down operation for semaphore access (WT)");
         exit (EXIT_FAILURE);
     }
