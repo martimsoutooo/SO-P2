@@ -123,26 +123,26 @@ int main (int argc, char *argv[])
  *  Updates its state and saves internal state.
  *  Received order should be acknowledged.
  */
-static void waitForOrder ()
-{
-
-    //TODO insert your code here
-     
-    if (semDown (semgid, sh->mutex) == -1) {                                                      /* enter critical region */
-        perror ("error on the up operation for semaphore access (PT)");
-        exit (EXIT_FAILURE);
+static void waitForOrder() {
+    if (semDown(semgid, sh->mutex) == -1) { // Entrar na região crítica
+        perror("error on the down operation for semaphore access (PT)");
+        exit(EXIT_FAILURE);
     }
 
-    //TODO insert your code here
+    sh->fSt.st.chefStat = WAIT_FOR_ORDER;
+    saveState(nFic, &sh->fSt);
+
     
+    sh->fSt.st.chefStat = COOK;
+    saveState(nFic, &sh->fSt);
+    sh->fSt.foodOrder = 0; 
 
-    if (semUp (semgid, sh->mutex) == -1) {                                                      /* exit critical region */
-        perror ("error on the up operation for semaphore access (PT)");
-        exit (EXIT_FAILURE);
+    if (semUp(semgid, sh->mutex) == -1) { // Sair da região crítica
+        perror("error on the up operation for semaphore access (PT)");
+        exit(EXIT_FAILURE);
     }
-
-    //TODO insert your code here
 }
+
 
 /**
  *  \brief chef cooks, then delivers the food to the waiter 
@@ -152,24 +152,33 @@ static void waitForOrder ()
  *  then updates its state.
  *  The internal state should be saved.
  */
-static void processOrder ()
-{
-    usleep((unsigned int) floor ((MAXCOOK * random ()) / RAND_MAX + 100.0));
+static void processOrder() {
+    usleep((unsigned int) floor((MAXCOOK * random()) / RAND_MAX + 100.0));
 
-    //TODO insert your code here
-
-    if (semDown (semgid, sh->mutex) == -1) {                                                      /* enter critical region */
-        perror ("error on the up operation for semaphore access (PT)");
-        exit (EXIT_FAILURE);
+    if (semDown(semgid, sh->mutex) == -1) {
+        perror("error on the up operation for semaphore access (PT)");
+        exit(EXIT_FAILURE);
     }
 
-    //TODO insert your code here
+    // Cozinhar a comida (simulado pelo usleep acima)
 
-    if (semUp (semgid, sh->mutex) == -1) {                                                      /* exit critical region */
-        perror ("error on the up operation for semaphore access (PT)");
-        exit (EXIT_FAILURE);
+    // Verificar se o garçom está disponível e se há um pedido para ser processado
+    if (sh->fSt.st.waiterStat == WAIT_FOR_REQUEST && sh->fSt.foodOrder != 0) {
+        sh->fSt.st.chefStat = REST; // Chef muda para o estado REST após cozinhar
+
+        // Sinalizar que a comida está pronta usando a estrutura de pedido
+        sh->fSt.waiterRequest.reqType = FOODREADY;
+        sh->fSt.waiterRequest.reqGroup = lastGroup; // Grupo para o qual a comida foi preparada
+
+        // Resetar o pedido de comida e o grupo
+        sh->fSt.foodOrder = 0;
+        lastGroup = -1;
     }
 
-    //TODO insert your code here
+    saveState(nFic, &sh->fSt);
+
+    if (semUp(semgid, sh->mutex) == -1) {
+        perror("error on the up operation for semaphore access (PT)");
+        exit(EXIT_FAILURE);
+    }
 }
-
