@@ -258,7 +258,9 @@ static void orderFood (int id)
     }
 
     // TODO insert your code here
-    // atualizar os dados para o waiter
+    // atualizar os dados para o waiter e atualizar estado do grupo
+    sh->fSt.st.groupStat[id] = FOOD_REQUEST;
+    saveState(nFic, &sh->fSt);
     sh->fSt.waiterRequest.reqGroup = id;
     sh->fSt.waiterRequest.reqType = FOODREQ;
     
@@ -268,9 +270,8 @@ static void orderFood (int id)
         exit(EXIT_FAILURE);
     }
 
-    // atualizar estado do grupo
-    sh->fSt.st.groupStat[id] = FOOD_REQUEST;
-    saveState(nFic, &sh->fSt);
+   
+    
 
     if (semUp (semgid, sh->mutex) == -1) {                                                     /* exit critical region */
         perror ("error on the up operation for semaphore access (CT)");
