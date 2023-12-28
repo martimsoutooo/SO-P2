@@ -148,26 +148,17 @@ int main (int argc, char *argv[])
  *  \return table id or -1 (in case of wait decision)
  */
 static int decideTableOrWait(int n) {
-    if (sh->fSt.st.groupStat[n] == ATRECEPTION && sh->fSt.assignedTable[n] == -1) {
-        int occupied = 0;
-        for (int num = 0; num < NUMTABLES; num++) {
-            if (sh->fSt.assignedTable[num] != -1) {
-                occupied++;
-            }
-        }
 
-        if (occupied < NUMTABLES) {
-            for (int tableId = 0; tableId < NUMTABLES; tableId++) {
-                if (sh->fSt.assignedTable[tableId] == -1) {
-                    sh->fSt.assignedTable[tableId] = n; 
-                    return tableId;
-                }
+    if (sh->fSt.st.groupStat[n] == ATRECEPTION && sh->fSt.assignedTable[n] == -1) {
+        for (int tableId = 0; tableId < NUMTABLES; tableId++) {
+            if (sh->fSt.assignedTable[tableId] == -1) {
+                sh->fSt.assignedTable[tableId] = n; 
+                return tableId;
             }
         }
     }
     return -1; // Nenhuma mesa disponível ou o grupo não está na recepção
 }
-
 
 /**
  *  \brief called when a table gets vacant and there are waiting groups 
@@ -182,8 +173,8 @@ static int decideNextGroup() {
 
     for (int groupId = 0; groupId < MAXGROUPS; groupId++) {
         
-        if (sh->fSt.st.groupStat[groupId] == ATRECEPTION && sh->fSt.assignedTable[groupId] == -1) {
-            return groupId; 
+        if (groupRecord[groupId] == ATRECEPTION && decideTableOrWait(groupId) != -1) {
+            return groupId;
         }
     }
 
@@ -209,14 +200,10 @@ static request waitForGroup() {
         exit(EXIT_FAILURE);
     }
 
+    // atualizar estado
     sh->fSt.st.receptionistStat = WAIT_FOR_REQUEST;
     saveState(nFic, &sh->fSt);
 
-    // Pedido recebido, copiar para ret
-    ret = sh->fSt.receptionistRequest;
-
-    // Resetar a variável de pedido para estar pronto para o próximo pedido
-    sh->fSt.receptionistRequest.reqType = 0;
 
     // Sair da região crítica
     if (semUp(semgid, sh->mutex) == -1) {
@@ -224,6 +211,27 @@ static request waitForGroup() {
         exit(EXIT_FAILURE);
     }
 
+    if (semDown(semgid, sh->receptionistRequestPossible) == -1) {
+        perror("error on the down operation for semaphore access (WT)");
+        exit(EXIT_FAILURE);
+    }
+
+    if (semDown(semgid, sh->mutex) == -1) {
+        perror("error on the down operation for semaphore access (WT)");
+        exit(EXIT_FAILURE);
+    }
+    
+    ret.reqGroup = sh->fSt.receptionistRequest.reqGroup;
+    ret.reqType = sh->fSt.receptionistRequest.reqType;
+
+    if (semUp(semgid, sh->mutex) == -1) {
+        perror("error on the up operation for semaphore access (WT)");
+        exit(EXIT_FAILURE);
+    }
+
+    // Pedido recebido, copiar para ret
+    
+    
     return ret; // Retornar o pedido processado
 }
 
