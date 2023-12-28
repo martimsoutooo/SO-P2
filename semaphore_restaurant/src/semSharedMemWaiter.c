@@ -143,6 +143,7 @@ static request waitForClientOrChef()
     }
 
     // TODO insert your code here
+    // atualizar o estado do waiter
     sh -> fSt.st.waiterStat = WAIT_FOR_REQUEST;
     saveState(nFic, &sh->fSt);
     
@@ -152,6 +153,7 @@ static request waitForClientOrChef()
     }
 
     // TODO insert your code here
+    // waiter acaba a espera que lhe seja atribuido um pedido
     semDown(semgid, sh->waiterRequest);
 
     if (semDown (semgid, sh->mutex) == -1)  {                                                  /* enter critical region */
@@ -160,6 +162,7 @@ static request waitForClientOrChef()
     }
 
     // TODO insert your code here
+    // registar grupo e id do pedido
     req.reqGroup = sh->fSt.waiterRequest.reqGroup;
     req.reqType = sh->fSt.waiterRequest.reqType;
 
@@ -169,6 +172,8 @@ static request waitForClientOrChef()
     }
 
     // TODO insert your code here
+
+    semUp(semgid, sh->waiterRequestPossible);
 
     return req;
 
@@ -190,15 +195,39 @@ static void informChef (int n)
         exit (EXIT_FAILURE);
     }
 
+    // Tem de ser atualizado o estado do waiter    
+
+    sh->fSt.st.waiterStat = INFORM_CHEF;
+    saveState(nFic, &sh->fSt);
+
+    // preencher a struct
+
+    sh->fSt.foodGroup = n;
+    sh->fSt.foodOrder = 1;
+
+    // chef esepra que o waiter lhe diga o pedido
+    semUp(semgid, sh->waitOrder);
+
+
     // TODO insert your code here
+    // preencher a struct
+    int mesa = sh->fSt.assignedTable[n];
     
     if (semUp (semgid, sh->mutex) == -1)                                                   /* exit critical region */
     { perror ("error on the down operation for semaphore access (WT)");
         exit (EXIT_FAILURE);
     }
 
+
+
     
     // TODO insert your code here
+
+    // waiter vai começar à espera que o chef lhe diga que está feito
+    semUp(semgid, sh->orderReceived);
+
+    // mesa "mesa" estão agora à espera que o waiter lhes traga a comidinha
+    semDown(semgid, sh->requestReceived[mesa]);
 
 }
 
@@ -219,6 +248,12 @@ static void takeFoodToTable (int n)
     }
 
     // TODO insert your code here
+    // atualizar o estado do waiter
+    sh->fSt.st.waiterStat = TAKE_TO_TABLE;
+    saveState(nFic, &sh->fSt);
+
+    // ir ter com o grupo com a comida
+    semUp(semgid, sh->foodArrived[sh->fSt.assignedTable[n]]);
     
     if (semUp (semgid, sh->mutex) == -1)  {                                                  /* exit critical region */
         perror ("error on the down operation for semaphore access (WT)");
