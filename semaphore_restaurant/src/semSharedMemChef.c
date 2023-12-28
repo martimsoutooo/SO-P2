@@ -126,7 +126,7 @@ int main (int argc, char *argv[])
 static void waitForOrder ()
 {
 
-    
+    //TODO insert your code here
     
     if (semDown (semgid, sh->waitOrder) == -1) {                                               /* enter critical region */
         perror ("error on the down operation for semaphore access");

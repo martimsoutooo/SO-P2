@@ -148,21 +148,33 @@ int main (int argc, char *argv[])
  *  \return table id or -1 (in case of wait decision)
  */
 static int decideTableOrWait(int n) {
+    
 
-    if(sh->fSt.st.groupStat[n] == ATRECEPTION && sh->fSt.assignedTable[n] == -1){
-        int occupied = 0;
-        for(int num = 0; num < sh->fSt.nGroups; num++)
-            if(sh->fSt.assignedTable[num] != -1)
-                occupied += 1 + sh->fSt.assignedTable[num];
+    if(sh->fSt.st.groupStat[n] == ATRECEPTION) {
+        int ocupadas = 0;
 
-        if(occupied <= 1)
+        for (int i = 0; i < sh->fSt.nGroups; i++) {
+            if (sh->fSt.assignedTable[i] != -1) {
+                ocupadas+= sh->fSt.assignedTable[i] + 1;
+            }
+        }
+        // se a soma for 1 só a mesa 0 está ocupada
+        // se a soma for 2 só a mesa 1 está ocupada
+        // se a soma for 3 as duas mesas estão ocupadas
+        // no entanto, a soma pode ser 0 se estiverem ambas livres e não se entrar no loop
+
+        if (ocupadas == 0) {
             return 1;
-        if(occupied == 2)
+        } else if (ocupadas == 1) {
+            return 1;
+        } else if (ocupadas == 2) {
             return 0;
+        }
+        
     }
-
     return -1; // Nenhuma mesa disponível ou o grupo não está na recepção
 }
+
 
 /**
  *  \brief called when a table gets vacant and there are waiting groups 
