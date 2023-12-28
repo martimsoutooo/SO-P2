@@ -212,12 +212,6 @@ static request waitForGroup() {
     sh->fSt.st.receptionistStat = WAIT_FOR_REQUEST;
     saveState(nFic, &sh->fSt);
 
-    // Esperar por um pedido de um grupo
-    while (sh->fSt.receptionistRequest.reqType == 0) {
-        // Implementar um pequeno atraso para evitar ocupação excessiva da CPU
-        usleep(1000); // Espera ativa, não ideal, mas pode ser necessária dependendo da implementação
-    }
-
     // Pedido recebido, copiar para ret
     ret = sh->fSt.receptionistRequest;
 
