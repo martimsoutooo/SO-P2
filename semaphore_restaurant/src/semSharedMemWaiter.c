@@ -155,7 +155,7 @@ static request waitForClientOrChef()
     // TODO insert your code here
     // waiter acaba a espera que lhe seja atribuido um pedido
     
-    if (semDown(semgid, sh->waiterRequest) == -1)  {                                                  /* enter critical region */
+    if (semDown(semgid, sh->waiterRequest) == -1)  {                                                 
         perror ("error on the up operation for semaphore access (WT)");
         exit (EXIT_FAILURE);
     }
@@ -177,7 +177,7 @@ static request waitForClientOrChef()
 
     // TODO insert your code here
 
-    if (semUp(semgid, sh->waiterRequestPossible) == -1) {                                                  /* exit critical region */
+    if (semUp(semgid, sh->waiterRequestPossible) == -1) {                                                  
         perror ("error on the down operation for semaphore access (WT)");
         exit (EXIT_FAILURE);
     }
@@ -214,7 +214,7 @@ static void informChef (int n)
 
     // chef esepra que o waiter lhe diga o pedido
     
-    if (semUp(semgid, sh->waitOrder) == -1)                                                   /* exit critical region */
+    if (semUp(semgid, sh->waitOrder) == -1)                                                   
     { perror ("error on the down operation for semaphore access (WT)");
         exit (EXIT_FAILURE);
     }
@@ -231,14 +231,14 @@ static void informChef (int n)
 
     // TODO insert your code here
     // waiter vai começar à espera que o chef lhe diga que está feito
-    if (semDown(semgid, sh->orderReceived) == -1)                                                   /* exit critical region */
+    if (semDown(semgid, sh->orderReceived) == -1)                                                   
     { perror ("error on the down operation for semaphore access (WT)");
         exit (EXIT_FAILURE);
     }
 
     // mesa "mesa" estão agora à espera que o waiter lhes traga a comidinha
     
-    if (semUp(semgid, sh->requestReceived[mesa]) == -1)                                                   /* exit critical region */
+    if (semUp(semgid, sh->requestReceived[mesa]) == -1)                                                  
     { perror ("error on the down operation for semaphore access (WT)");
         exit (EXIT_FAILURE);
     }
@@ -268,7 +268,7 @@ static void takeFoodToTable (int n)
 
     // ir ter com o grupo com a comida
     
-    if (semUp(semgid, sh->foodArrived[sh->fSt.assignedTable[n]]) == -1)  {                                                  /* exit critical region */
+    if (semUp(semgid, sh->foodArrived[sh->fSt.assignedTable[n]]) == -1)  {                                                 
         perror ("error on the down operation for semaphore access (WT)");
         exit (EXIT_FAILURE);
     }
